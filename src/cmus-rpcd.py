@@ -12,7 +12,6 @@ if definitions.HAS_CMUS is False:
     print("You need to install CMUS to use this application.")
     sys.exit(1)
 
-
 settings = definitions.load_settings()
 setproctitle(settings["DAEMON_NAME"])
 
@@ -21,6 +20,7 @@ RPC.connect()
 
 try:
     while True:
+        settings = definitions.load_settings()
         cmus_state = definitions.get_state_info()
 
         if cmus_state is not None:

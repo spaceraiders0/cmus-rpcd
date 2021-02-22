@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 from psutil import process_iter
 from configparser import ConfigParser
+from datetime import datetime as dt
 
 root_dir = Path(__file__).parent.parent
 settings_file = root_dir / Path("settings.ini")
@@ -48,8 +49,14 @@ def load_settings() -> dict:
     settings = {
         "UPDATE_TIME": 1,
         "CLIENT_ID": "813509909794127872",
-        "FORMAT_STRING": "{name} - {artst}"
+        "FORMAT_STRING": "{name} - {artist}",
+        "DAEMON_NAME": "cmus-rpcd.py",
     }
+
+    # Return default settings if the settings file is deleted.
+    if settings_file.exists() is False:
+        return settings
+    
 
     if settings_file.exists() is False:
         open(settings_file, "x")
@@ -72,8 +79,11 @@ def load_settings() -> dict:
     try:
         settings["UPDATE_TIME"] = int(cmus_section["UPDATE_TIME"])
         settings["CLIENT_ID"] = cmus_section["CLIENT_ID"]
-        settings["FORMAT_STRING"] = cmus_section["FORMAT_STRING"]
         settings["DAEMON_NAME"] = cmus_section["DAEMON_NAME"]
+
+        # FORMAT_STRING cannot have a length of zero.
+        if len(cmus_section["FORMAT_STRING"]) > 0:
+            settings["FORMAT_STRING"] = cmus_section["FORMAT_STRING"]
     except KeyError as exp:
         print(f"{exp} field is not found! Settings file is malformed.")
         print("Please delete the settings file and reload the script.")
@@ -138,6 +148,9 @@ def get_state_info() -> dict:
         },
     }
 
+    if settings_file.exists() is True:
+        load_settings()
+
     try:
         output = subprocess.check_output(["cmus-remote", "-C", "status"]).decode("UTF-8")
         output_lines = (output.splitlines())
@@ -172,12 +185,15 @@ def format(format_string: str) -> str:
 
     format_string_copy = "".join(format_string)
     cmus_state = get_state_info()
+    cmus_value = cmus_state["values"]
     format_specifers = {
         "{name}": Path(cmus_state["values"]["file"]).stem,
         "{artist}": cmus_state["tag"]["artist"],
         "{album}": cmus_state["tag"]["album"],
         "{title}": cmus_state["tag"]["title"],
-        "{tracknumber}": cmus_state["tag"]["tracknumber"]
+        "{tracknumber}": cmus_state["tag"]["tracknumber"],
+        "{total_time}": dt.fromtimestamp(cmus_value["duration"]).strftime("%M:%S"),
+        "{progress}": dt.fromtimestamp(cmus_value["position"]).strftime("%M:%S")
     }
 
     # Replace all occurances of format specifiers.
