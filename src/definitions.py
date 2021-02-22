@@ -7,21 +7,26 @@ import shutil
 import subprocess
 from pathlib import Path
 from psutil import process_iter
-from configparser import ConfigParser
+from configparser import RawConfigParser
 from datetime import datetime as dt
 
 root_dir = Path(__file__).parent.parent
 settings_file = root_dir / Path("settings.ini")
-settings_parser = ConfigParser()
+settings_parser = RawConfigParser()
 
 HAS_CMUS = shutil.which("cmus")
-SETTINGS_DEFAULT = """\
-[cmus-rpc]
-UPDATE_TIME = 1
-CLIENT_ID = 813509909794127872
-FORMAT_STRING = {name} - {artist}
-DAEMON_NAME = cmus-rpcd.py
-"""
+default_settings = {
+    "update_time": "1",
+    "status_format": "{name} - {artist}",
+    "details_format": "",
+    "progress_format": "%M:%S",
+    "duration_format": "%M:%S",
+    "include_progress": "True",
+    "include_duration": "True",
+
+    "client_id": "813509909794127872",
+    "daemon_name": "cmus-rpcd.py",
+}
 
 # Value Constants
 types = {
@@ -46,50 +51,20 @@ def load_settings() -> dict:
     """Loads this program's settings from the settings file.
     """
 
-    settings = {
-        "UPDATE_TIME": 1,
-        "CLIENT_ID": "813509909794127872",
-        "FORMAT_STRING": "{name} - {artist}",
-        "DAEMON_NAME": "cmus-rpcd.py",
-    }
-
-    # Return default settings if the settings file is deleted.
-    if settings_file.exists() is False:
-        return settings
-    
-
-    if settings_file.exists() is False:
+    if settings_file.exists() is False:  # Load defaults
         open(settings_file, "x")
+        settings_parser.add_section("cmus-rpc")
+
+        for field, default in default_settings.items():
+            settings_parser["cmus-rpc"][field] = default
 
         with open(settings_file, "w") as settings_buffer:
-            settings_buffer.write(SETTINGS_DEFAULT)
+            settings_parser.write(settings_buffer)
 
-    settings_parser.read(settings_file)
-    
-    # Error handling for the cmus-rpc section.
-    try:
-        cmus_section = settings_parser["cmus-rpc"]
-    except KeyError:
-        print("Section 'cmus-rpc' not found in settings file!")
-        print("Settings file is malformed. Please delete the settings", end="")
-        print(" file, restart the script.")
-        sys.exit(1)
+    elif settings_file.exists() is True:  # Load settings.
+        settings_parser.read(settings_file)
 
-    # Error handling for basic settings.
-    try:
-        settings["UPDATE_TIME"] = int(cmus_section["UPDATE_TIME"])
-        settings["CLIENT_ID"] = cmus_section["CLIENT_ID"]
-        settings["DAEMON_NAME"] = cmus_section["DAEMON_NAME"]
-
-        # FORMAT_STRING cannot have a length of zero.
-        if len(cmus_section["FORMAT_STRING"]) > 0:
-            settings["FORMAT_STRING"] = cmus_section["FORMAT_STRING"]
-    except KeyError as exp:
-        print(f"{exp} field is not found! Settings file is malformed.")
-        print("Please delete the settings file and reload the script.")
-        sys.exit(1)
-
-    return settings
+    return settings_parser["cmus-rpc"]
 
 
 def typecast(value: str) -> any:
@@ -148,9 +123,6 @@ def get_state_info() -> dict:
         },
     }
 
-    if settings_file.exists() is True:
-        load_settings()
-
     try:
         output = subprocess.check_output(["cmus-remote", "-C", "status"]).decode("UTF-8")
         output_lines = (output.splitlines())
@@ -184,16 +156,22 @@ def format(format_string: str) -> str:
     """
 
     format_string_copy = "".join(format_string)
+
+    settings = load_settings()
+    PROGRESS_FORMAT = settings["progress_format"]
+    DURATION_FORMAT = settings["duration_format"]
+
     cmus_state = get_state_info()
     cmus_value = cmus_state["values"]
+
     format_specifers = {
         "{name}": Path(cmus_state["values"]["file"]).stem,
         "{artist}": cmus_state["tag"]["artist"],
         "{album}": cmus_state["tag"]["album"],
         "{title}": cmus_state["tag"]["title"],
         "{tracknumber}": cmus_state["tag"]["tracknumber"],
-        "{total_time}": dt.fromtimestamp(cmus_value["duration"]).strftime("%M:%S"),
-        "{progress}": dt.fromtimestamp(cmus_value["position"]).strftime("%M:%S")
+        "{duration}": dt.fromtimestamp(cmus_value["duration"]).strftime(DURATION_FORMAT),
+        "{progress}": dt.fromtimestamp(cmus_value["position"]).strftime(PROGRESS_FORMAT)
     }
 
     # Replace all occurances of format specifiers.
