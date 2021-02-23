@@ -7,28 +7,25 @@ import shutil
 import subprocess
 from pathlib import Path
 from psutil import process_iter
-from configparser import RawConfigParser
+from configparser import RawConfigParser, DuplicateSectionError
 from datetime import datetime as dt
 
+HAS_CMUS = shutil.which("cmus")
 root_dir = Path(__file__).parent.parent
 settings_file = root_dir / Path("settings.ini")
 settings_parser = RawConfigParser()
-
-HAS_CMUS = shutil.which("cmus")
 default_settings = {
     "update_time": "1",
-    "status_format": "{name} - {artist}",
-    "details_format": "",
-    "progress_format": "%M:%S",
-    "duration_format": "%M:%S",
-    "include_progress": "True",
-    "include_duration": "True",
+    "state_format": "{name} - {artist}",
+    "details_format": "...",
+    "include_progress": True,
+    "include_duration": True,
+    "include_state": True,
+    "include_details": True,
 
     "client_id": "813509909794127872",
     "daemon_name": "cmus-rpcd.py",
 }
-
-# Value Constants
 types = {
     "\d*\.\d+": float,
     "((T|t)rue|(F|f)alse)": lambda value: True if value.lower() == "true" \
@@ -51,20 +48,31 @@ def load_settings() -> dict:
     """Loads this program's settings from the settings file.
     """
 
+    settings = default_settings.copy()
+
     if settings_file.exists() is False:  # Load defaults
         open(settings_file, "x")
-        settings_parser.add_section("cmus-rpc")
 
+        try:
+            settings_parser.add_section("cmus-rpc")
+        except DuplicateSectionError:
+            pass
+
+        # Loads defaults into the ConfigParser
         for field, default in default_settings.items():
-            settings_parser["cmus-rpc"][field] = default
+            settings_parser["cmus-rpc"][field] = str(default)
 
+        # Writes the loaded defaults to the file.
         with open(settings_file, "w") as settings_buffer:
             settings_parser.write(settings_buffer)
-
     elif settings_file.exists() is True:  # Load settings.
         settings_parser.read(settings_file)
 
-    return settings_parser["cmus-rpc"]
+        # Load defined settings into the settings dictionary.
+        for field, value in settings_parser["cmus-rpc"].items():
+            settings[field] = typecast(value)
+
+    return settings
 
 
 def typecast(value: str) -> any:
@@ -156,11 +164,7 @@ def format(format_string: str) -> str:
     """
 
     format_string_copy = "".join(format_string)
-
     settings = load_settings()
-    PROGRESS_FORMAT = settings["progress_format"]
-    DURATION_FORMAT = settings["duration_format"]
-
     cmus_state = get_state_info()
     cmus_value = cmus_state["values"]
 
@@ -170,8 +174,6 @@ def format(format_string: str) -> str:
         "{album}": cmus_state["tag"]["album"],
         "{title}": cmus_state["tag"]["title"],
         "{tracknumber}": cmus_state["tag"]["tracknumber"],
-        "{duration}": dt.fromtimestamp(cmus_value["duration"]).strftime(DURATION_FORMAT),
-        "{progress}": dt.fromtimestamp(cmus_value["position"]).strftime(PROGRESS_FORMAT)
     }
 
     # Replace all occurances of format specifiers.
