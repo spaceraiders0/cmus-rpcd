@@ -22,7 +22,7 @@ daemon_name = settings["daemon_name"]
 if daemon_args.start is True:
     daemon_path = Path(__file__).parent / Path("cmus-rpcd.py")
 
-    if definitions.daemon_is_running(daemon_name) is False:
+    if definitions.process_is_running(daemon_name) is False:
         print("Started daemon!")
         subprocess.Popen(str(daemon_path))
 elif daemon_args.kill is True:

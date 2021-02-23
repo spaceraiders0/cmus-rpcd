@@ -23,18 +23,27 @@ last_song = None
 
 try:
     while True:
+        # If cmus is not running.
+        if definitions.process_is_running("cmus") is False:
+            continue
+
         settings = definitions.load_settings()
         cmus_state = definitions.get_state_info()
 
-        # If cmus is not running.
+        # Cmus has not been launched.
         if cmus_state is None:
             continue
-        
+
+        # Cmus is launched, but no song has been started.
+        if cmus_state["values"]["status"] == "stopped":
+            continue
+
         playing_song = Path(cmus_state["values"]["file"]).stem
         state = definitions.format(settings["state_format"])
         details = definitions.format(settings["details_format"])
         progress = cmus_state["values"]["position"]
         duration = cmus_state["values"]["duration"]
+
 
         # Assign a new start_time, if a new song is playing.
         if playing_song != last_song:
@@ -44,18 +53,10 @@ try:
 
         # Build the update dictionary.
         updates = {}
-
-        if settings["include_state"] is True:
-            updates["state"] = state
+        updates["state"] = state
 
         if settings["include_details"] is True:
             updates["details"] = details
-
-        if settings["include_progress"] is True:
-            updates["start"] = start_time + progress 
-
-        if settings["include_duration"] is True:
-            updates["end"] = end_time
 
         try:
             RPC.update(**updates, large_image="cmus-rpc")
