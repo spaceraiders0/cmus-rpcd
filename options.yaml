@@ -1,7 +1,0 @@
-client_id: 813509909794127872
-change_increment: 1
-#state_format: '{title} - {album} - {artist}'
-state_format: '{artist} - {title}'
-details_format: '{progress} - {duration}'
-progress_format: $M:$S
-duration_format: $M:$S

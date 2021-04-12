@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 # Project files
-*.ini
+*.yaml
 
 # C extensions
 *.so
