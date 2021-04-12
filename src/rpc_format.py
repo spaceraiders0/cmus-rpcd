@@ -26,6 +26,7 @@ def format_state(cmus_state: dict, options: dict) -> dict:
         "{artist}": cmus_tags["artist"],
         "{album}": cmus_tags["album"],
         "{title}": cmus_tags["title"],
+        "{status}": cmus_values["status"],
         "{tracknum}": str(cmus_tags["tracknumber"]),
         "{shuffle}": str(cmus_set["shuffle"]),
         "{repeat}": str(cmus_set["repeat"]),
