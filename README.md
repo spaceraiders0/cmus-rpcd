@@ -4,18 +4,27 @@ cmus-rpcd is a small daemon that allows you to display the song you are currentl
 ![GIF Demonstration](./images/demonstration_gif.gif)
 
 ## How to use
-cmus-rpcd is quite simple to setup. cmus-rpcd currently does not launch itself as a service for Systemd, however this is a planned feature for the future. Currently, you must launch the script manually, or find a way to do this on startup. Usually, this is achieved through your window manager, or through some other way if you are using a desktop environment.
-
-However, there is some installation needed on your end. All you must do is install a few packages. The packages are:
+Installation is quite simple. First, install the following libraries:
 * setproctitle
 * pypresence
 * psutil
 </br>
-And that is it! You can then launch the program, and it will be displayed on your profile. 
+
+Next, navigate to the directory you would like to install this in, and run the following commands to install the program:
+```sh
+$ git clone https://github.com/spaceraiders0/cmus-rpcd
+$ cd cmus-rpcd
+$ sudo ./install -i
+```
+Now that the program is installed, you can start it by doing:
+```sh
+$ cmus-rpcd.py --start
+```
+And you are off. Stop any other rich presence clients, start Discord and Cmus, and you should be able to see your song playing.
 
 ## Configuration
-cmus-rpcd can be easily customized. It comes with many options to customize the look of your presence. Your settings file is generated automatically by the daemon in the folder you installed it in. The settings separated by a new line should not be modified, but can be if you know what you are doing.
-
+cmus-rpcd can be easily customized. It comes with many options to customize the look of your presence. Your settings file is generated automatically by the daemon in the folder you installed it in. Once you launch the program, an ``options.yaml`` file should be created. Inside of it
+are all of the options the program can take. They are:
 | Setting          | Functionality 				          |  Type   |
 |------------------|------------------------------------------------------|---------|
 | change_increment | Time interval between status updates.                | Integer |
@@ -43,3 +52,6 @@ cmus-rpcd also has format specifiers that can be applied to the state, and the d
 | {progpercent} | Time left in the song on a percent scale.               |
 | {{}           | An escaped opening curly brace.                         |
 | {}}           | An escaped closing curly brace.                         |
+
+``state_format`` contains the specifiers for the first RPC line. Let's say you wanted to display the track number, the song name, and the artist in that order. Your ``state_format`` would look like:</br>
+``{tracknum}. {title} - {artist}``
