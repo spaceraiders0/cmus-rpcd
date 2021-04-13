@@ -55,3 +55,6 @@ cmus-rpcd also has format specifiers that can be applied to the state, and the d
 
 ``state_format`` contains the specifiers for the first RPC line. Let's say you wanted to display the track number, the song name, and the artist in that order. Your ``state_format`` would look like:</br>
 ``{tracknum}. {title} - {artist}``
+
+# Final parts
+And that is it. You can apply the same logic for ``details_format`` as you did for ``state_format``, and past this point, you should be golden. If you find any bugs, feel free to contact me through Discord. My tag is: ``goo#0114``.
