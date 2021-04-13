@@ -3,11 +3,18 @@
 """The main file for the Rich Presence.
 """
 
+import sys
 import time
 import rpc_cmus
 import rpc_format
 import rpc_options
+import subprocess
+import setproctitle
+from argparse import ArgumentParser
 from pypresence import Presence, exceptions
+
+
+setproctitle.setproctitle("cmus-rpcd")
 
 rpc_options.verify_options_file()
 initial_settings = rpc_options.parse_options_file()
@@ -17,15 +24,12 @@ rpc_connection = Presence(initial_settings["client_id"])
 while True:
     try:
         rpc_connection.connect()
-        print("Initial connection!")
         break
     except (exceptions.InvalidID, ConnectionResetError, ConnectionRefusedError,
             FileNotFoundError):
         pass
 
-
 while True:
-    print("Working!")
     try:
         rpc_options.verify_options_file()
         prog_options = rpc_options.parse_options_file()

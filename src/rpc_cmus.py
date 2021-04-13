@@ -42,7 +42,7 @@ def process_is_running(process_name: str) -> bool:
     """
 
     for process in psutil.process_iter():
-        if process.name() == PROCESS_NAME:
+        if process.name() == process_name:
             return True
 
     return False

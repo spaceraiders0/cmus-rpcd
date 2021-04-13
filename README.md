@@ -1,6 +1,8 @@
 # cmus-rpcd
 cmus-rpcd is a small daemon that allows you to display the song you are currently listening to, as well as other information, through Discord's Rich Presence. It automatically refreshes settings, so you do not need to restart the daemon to get changes to your presence. It also comes with lots of customization options for your presence.
 
+![GIF Demonstration](./images/demonstration_gif.gif)
+
 ## How to use
 cmus-rpcd is quite simple to setup. cmus-rpcd currently does not launch itself as a service for Systemd, however this is a planned feature for the future. Currently, you must launch the script manually, or find a way to do this on startup. Usually, this is achieved through your window manager, or through some other way if you are using a desktop environment.
 
@@ -8,6 +10,7 @@ However, there is some installation needed on your end. All you must do is insta
 * setproctitle
 * pypresence
 * psutil
+</br>
 And that is it! You can then launch the program, and it will be displayed on your profile. 
 
 ## Configuration
@@ -15,24 +18,28 @@ cmus-rpcd can be easily customized. It comes with many options to customize the 
 
 | Setting          | Functionality 				          |  Type   |
 |------------------|------------------------------------------------------|---------|
-| UPDATE_TIME      | Time interval between status updates.                | Integer |
-| STATE_FORMAT     | The string used to format state information.         | String  |
-| DETAILS_FORMAT   | The string used to format details information.	  | String  |
-| PROGRESS_FORMAT  | The string used to format the song progress.         | String  |
-| DURATION_FORMAT  | The string used to format the song duration.         | String  |
-| INCLUDE_STATUS   | Whether or not to show the status. 		  | Boolean |
-| INCLUDE_DETAILS  | Whether or not to show the details.	          | Boolean |
+| change_increment | Time interval between status updates.                | Integer |
+| state_format     | The string used to format state information.         | String  |
+| details_format   | The string used to format details information.	      | String  |
+| progress_format  | The string used to format the song progress.         | String  |
+| duration_format  | The string used to format the song duration.         | String  |
 
 ## Format Specifiers
 cmus-rpcd also has format specifiers that can be applied to the state, and the details. They are:
-| Specifier     | Meaning                                     |
-|---------------|---------------------------------------------|
-| {name}        | The name of the current song.               |
-| {status}      | The playing state of the song.              |
-| {repeat}      | Whether or not the song is repeating.       |
-| {artist}      | The name of the artist of the current song. |
-| {album}       | The name of the album the song is in.       |
-| {title}       | The title of the song playing.              |
-| {tracknumber} | The track number of the playing song.       |
-| {progress}    | The formatted progress through the song.    |
-| {duration}    | The formatted duration of the song.         |
+| Specifier     | Meaning                                                 |
+|---------------|------------------------------------------------------   |
+| {artist}      | The artist of the song.                                 |
+| {album}       | The album of the song.                                  |
+| {title}       | The title of the song.                                  |
+| {status}      | The title of the song.                                  |
+| {tracknum}    | The track number of the song.                           |
+| {shuffle}     | Whether or not shuffle is on.                           |
+| {repeat}      | Whether or not a repeating is enabled.                  |
+| {current}     | Whether or not the current song is repeating.           |
+| {playlibrary} | Whether or not the song is playing from the library.    |
+| {playsorted}  | Whether or not the playing mode is sorted.              |
+| {progress}    | Time left in the song. Formatted by progress_format.    |
+| {duration}    | Total time of the song. Formatted by duration_format.   |
+| {progpercent} | Time left in the song on a percent scale.               |
+| {{}           | An escaped opening curly brace.                         |
+| {}}           | An escaped closing curly brace.                         |
